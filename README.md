@@ -6,6 +6,19 @@ The goal is to make temporary file staging feel effortless—especially when you
 
 ---
 
+## Download
+
+Prebuilt Windows builds are published in **Releases** on GitHub.
+
+- Download: `MyFileStation-win-x64.zip`
+- Unzip it
+- Run: `MyFileStation.exe`
+
+> Note: An .exe is a binary file. If you click it inside VS Code, VS Code may show “file is not displayed…” — that is normal. Run it from File Explorer instead.
+> 
+
+---
+
 ## Why this exists
 
 Sometimes you just need a small holding area:
@@ -21,34 +34,41 @@ MyFileStation is designed to stay out of the way and be available only when you�
 ## Key features
 
 ### Edge-triggered shelf (auto show / auto hide)
+
 - Runs quietly in the background.
 - When you drag a file toward the configured screen edge (left or right), the shelf appears.
 - If you cancel the drag (release the mouse without dropping) and the shelf is empty, the window fades out and hides.
 
 ### Drag & drop in/out (single or multiple)
+
 - Drop files into the shelf from File Explorer or other apps.
 - Select one or multiple items and drag them out to a folder or another application.
 
 ### Clipboard workflow
+
 - **Ctrl + V (Import):**
-  - If the clipboard contains files copied in Explorer, those files are added.
-  - If the clipboard contains an image/screenshot, it’s stored as a temporary image file.
-  - If the clipboard contains text, it’s stored as a temporary `.txt` file.
+    - If the clipboard contains files copied in Explorer, those files are added.
+    - If the clipboard contains an image/screenshot, it’s stored as a temporary image file.
+    - If the clipboard contains text, it’s stored as a temporary `.txt` file.
 - **Ctrl + C (Export):**
-  - Copies selected shelf items to clipboard as file URLs, so you can paste into apps/folders that accept files.
+    - Copies selected shelf items to clipboard as file URLs, so you can paste into apps/folders that accept files.
 
 ### Visual list (thumbnail + name + path)
+
 - Image files display real thumbnails.
 - Each entry shows a readable file name and a file path (paths are elided to fit the UI cleanly).
 
-### Lock / unlock
+### Lock (pin) items
 
-- Click the lock button on an item to toggle **Locked / Unlocked**.
-- Locked items remain on the shelf even after you drag them out.
+Each item has a lock toggle:
+
+- **Locked:** the item will not be auto-removed after dragging out
+- **Unlocked:** the item can be auto-removed (depending on settings)
 
 This is useful for always-needed files like templates or frequently reused assets.
 
 ### Fast remove
+
 - Each item has a small **×** button to remove it instantly (manual remove always works, even for locked items).
 
 ---
@@ -67,7 +87,7 @@ Tip: A single GIF showing “drag to edge → shelf appears → drop → lock �
 
 ## Project structure
 
-```text
+```
 MyFileStation/
   src/
     myfilestation/
@@ -78,12 +98,16 @@ MyFileStation/
       settings.py
       models.py
       utils.py
+  run_myfilestation.py
+  requirements.txt
   .gitignore
   LICENSE
   README.md
+
 ```
 
 High-level responsibilities:
+
 - `edge_sensor.py`: detects drag-to-edge behavior
 - `shelf_window.py`: shelf UI + item interactions (lock/remove/drag out)
 - `tray.py`: system tray icon + quick actions
@@ -104,43 +128,126 @@ High-level responsibilities:
 ## Quick start (run locally)
 
 ### 1) Clone the repository
+
 ```bash
 git clone https://github.com/JeremyL691/MyFileStation.git
 cd MyFileStation
+
 ```
 
 ### 2) Create and activate a virtual environment (PowerShell)
+
 ```powershell
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
+
 ```
 
 If PowerShell blocks activation, run this once (then try again):
+
 ```powershell
 Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
+
 ```
 
 ### 3) Install dependencies
+
 ```powershell
 pip install -r requirements.txt
+
 ```
 
 ### 4) Run the app
+
 This project uses a `src/` layout, so run from the repo root:
+
 ```powershell
 $env:PYTHONPATH="src"
-python -m myfilestation.main
+python .\run_myfilestation.py
+
 ```
 
-The app should start in the background (typically with a tray icon). Then try dragging a file toward the configured edge.
+---
+
+## Build a Windows EXE (PyInstaller)
+
+### 1) Install PyInstaller
+
+```powershell
+pip install -U pyinstaller
+
+```
+
+### 2) Build (single-file, no console window)
+
+Run from the repo root:
+
+```powershell
+pyinstaller --noconfirm --clean --onefile --windowed --name MyFileStation --paths src .\run_myfilestation.py
+
+```
+
+Output:
+
+- `dist\MyFileStation.exe`
+
+### 3) (Optional) Debug build (shows console output)
+
+If the EXE launches and immediately exits, build without `--windowed`:
+
+```powershell
+pyinstaller --noconfirm --clean --onefile --name MyFileStation --paths src .\run_myfilestation.py
+
+```
+
+### 4) Zip for release
+
+```powershell
+mkdir release -Force
+Copy-Item .\dist\MyFileStation.exe .\release\MyFileStation.exe -Force
+Compress-Archive -Path .\release\MyFileStation.exe -DestinationPath .\release\MyFileStation-win-x64.zip -Force
+
+```
 
 ---
 
 ## Notes about drag & drop on Windows
 
 If clipboard import works but drag-and-drop does not, it is often a privilege/UAC issue:
+
 - If MyFileStation is running as Administrator but File Explorer is not, Windows may block drag-and-drop.
 - Recommendation: run MyFileStation as a normal user (non-admin) for daily usage.
+
+---
+
+## Troubleshooting
+
+### The app “runs” but I don’t see a window
+
+- Check the system tray (hidden icons). The app may be running in the background.
+- Try using the tray menu to show the window.
+
+### VS Code says it cannot display the exe
+
+That is expected. VS Code is a text editor and `.exe` is a binary.
+
+### Build fails with `PermissionError: WinError 5` on `dist\MyFileStation.exe`
+
+- Close the running app (tray → Exit), then try again.
+- Or kill it:
+
+```powershell
+taskkill /F /IM MyFileStation.exe
+
+```
+
+- Delete old build output and rebuild:
+
+```powershell
+Remove-Item -Recurse -Force .\dist, .\build -ErrorAction SilentlyContinue
+pyinstaller --noconfirm --clean --onefile --windowed --name MyFileStation --paths src .\run_myfilestation.py
+
+```
 
 ---
 
@@ -159,12 +266,14 @@ If clipboard import works but drag-and-drop does not, it is often a privilege/UA
 Issues and PRs are welcome.
 
 When filing a bug, please include:
+
 - Windows version
 - steps to reproduce
 - expected vs actual behavior
 - screenshots / short recording if UI-related
 
 PR guidelines:
+
 - keep changes focused and easy to review
 - explain the reason for the change
 - add screenshots for UI changes when possible
@@ -174,3 +283,8 @@ PR guidelines:
 ## License
 
 MIT License. See `LICENSE`.
+
+```
+::contentReference[oaicite:0]{index=0}
+
+```
