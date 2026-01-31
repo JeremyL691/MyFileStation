@@ -41,10 +41,10 @@ MyFileStation is designed to stay out of the way and be available only when youâ
 - Image files display real thumbnails.
 - Each entry shows a readable file name and a file path (paths are elided to fit the UI cleanly).
 
-### Lock (pin) items
-Each item has a lock toggle:
-- **Locked:** the item will not be auto-removed after dragging out
-- **Unlocked:** the item can be auto-removed (depending on settings)
+### Lock / unlock
+
+- Click the lock button on an item to toggle **Locked / Unlocked**.
+- Locked items remain on the shelf even after you drag them out.
 
 This is useful for always-needed files like templates or frequently reused assets.
 
