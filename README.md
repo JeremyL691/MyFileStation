@@ -2,7 +2,7 @@
 
 MyFileStation is a lightweight “file shelf” for Windows. It stays hidden most of the time, then appears when you drag files toward the screen edge. Drop items in, keep them temporarily, copy/drag them out later, lock frequently reused files, and remove items quickly.
 
-The goal is to make “temporary file staging” feel effortless—especially when you’re moving files between folders, apps, browsers, or chat tools.
+The goal is to make temporary file staging feel effortless—especially when you’re moving files between folders, apps, browsers, or chat tools.
 
 ---
 
@@ -12,7 +12,7 @@ Sometimes you just need a small holding area:
 
 - collecting files from different folders before sending them somewhere
 - moving multiple assets between apps (design tools, browsers, messaging apps)
-- keeping a few “always-used” files ready to drag out at any time
+- keeping a few always-used files ready to drag out at any time
 
 MyFileStation is designed to stay out of the way and be available only when you’re already doing a drag action.
 
@@ -21,7 +21,7 @@ MyFileStation is designed to stay out of the way and be available only when you�
 ## Key features
 
 ### Edge-triggered shelf (auto show / auto hide)
-- The app runs quietly in the background.
+- Runs quietly in the background.
 - When you drag a file toward the configured screen edge (left or right), the shelf appears.
 - If you cancel the drag (release the mouse without dropping) and the shelf is empty, the window fades out and hides.
 
@@ -46,7 +46,7 @@ Each item has a lock toggle:
 - **Locked:** the item will not be auto-removed after dragging out
 - **Unlocked:** the item can be auto-removed (depending on settings)
 
-This is useful for “always needed” files like templates or frequently reused assets.
+This is useful for always-needed files like templates or frequently reused assets.
 
 ### Fast remove
 - Each item has a small **×** button to remove it instantly (manual remove always works, even for locked items).
@@ -81,142 +81,96 @@ MyFileStation/
   .gitignore
   LICENSE
   README.md
+```
+
 High-level responsibilities:
+- `edge_sensor.py`: detects drag-to-edge behavior
+- `shelf_window.py`: shelf UI + item interactions (lock/remove/drag out)
+- `tray.py`: system tray icon + quick actions
+- `settings.py`: basic preferences (dock side, behavior toggles)
+- `models.py`: data model for shelf items
+- `utils.py`: helper functions (temp files, thumbnails, open in explorer, etc.)
 
-edge_sensor.py: detects “drag-to-edge” behavior
+---
 
-shelf_window.py: shelf UI + item interactions (lock/remove/drag out)
+## Requirements
 
-tray.py: system tray icon + quick actions
+- Windows 10/11
+- Python 3.10+ (3.11+ recommended)
+- Dependencies installed via `pip` (see `requirements.txt`)
 
-settings.py: basic preferences (dock side, behavior toggles)
+---
 
-models.py: data model for shelf items
+## Quick start (run locally)
 
-utils.py: helper functions (temp files, thumbnails, open in explorer, etc.)
-
-Requirements
-Windows 10/11
-
-Python 3.10+ (3.11+ recommended)
-
-Dependencies installed via pip (see requirements.txt)
-
-Quick start (run locally)
-1) Clone the repository
+### 1) Clone the repository
+```bash
 git clone https://github.com/JeremyL691/MyFileStation.git
 cd MyFileStation
-2) Create and activate a virtual environment (PowerShell)
+```
+
+### 2) Create and activate a virtual environment (PowerShell)
+```powershell
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
+```
+
 If PowerShell blocks activation, run this once (then try again):
-
+```powershell
 Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
-3) Install dependencies
-pip install -r requirements.txt
-4) Run the app
-This project uses a src/ layout, so run from the repo root:
+```
 
+### 3) Install dependencies
+```powershell
+pip install -r requirements.txt
+```
+
+### 4) Run the app
+This project uses a `src/` layout, so run from the repo root:
+```powershell
 $env:PYTHONPATH="src"
 python -m myfilestation.main
+```
+
 The app should start in the background (typically with a tray icon). Then try dragging a file toward the configured edge.
 
-How to use
-Show the shelf
-Start dragging a file (for example from File Explorer).
+---
 
-Move your cursor toward the configured screen edge.
+## Notes about drag & drop on Windows
 
-The shelf appears—drop the file to add it.
+If clipboard import works but drag-and-drop does not, it is often a privilege/UAC issue:
+- If MyFileStation is running as Administrator but File Explorer is not, Windows may block drag-and-drop.
+- Recommendation: run MyFileStation as a normal user (non-admin) for daily usage.
 
-Add via clipboard
-Copy a file in Explorer → press Ctrl + V while the shelf is focused
+---
 
-Take a screenshot → press Ctrl + V
+## Roadmap (ideas)
 
-Copy text → press Ctrl + V (creates a temporary .txt)
+- Preferences UI (dock side, remove behavior, autostart)
+- Better preview support (quick view panel / system preview integration)
+- More robust “file drag vs window drag” distinction
+- Improved batch export UX (dragging multiple items as a stack)
+- Polished icons and file type indicators for non-image files
 
-Copy / drag out
-Select one or more items → Ctrl + C to copy them into clipboard as files
+---
 
-Or drag selected items out directly into a target folder/app
+## Contributing
 
-Lock / unlock
-Click the lock button on an item to toggle Locked / Unlocked
-
-Locked items remain in the shelf even after you drag them out
-
-Remove items
-Click × on an item to remove it immediately
-
-Use Clear (Unlocked) to remove all unlocked items in one action
-
-Settings
-MyFileStation aims to keep settings minimal:
-
-Dock side: left / right screen edge
-
-Remove after drag out: whether unlocked items are removed after exporting
-
-Autostart: launch with Windows (optional)
-
-Note: Depending on the current implementation, some settings may be code-configurable first and later moved into a dedicated Preferences UI.
-
-Troubleshooting
-Dragging to the edge does nothing
-Confirm the app is running (check the system tray).
-
-Test with File Explorer first (some apps don’t provide standard drag data).
-
-If the shelf only appears sometimes, try a slower drag toward the edge to confirm the trigger zone.
-
-I can paste (Ctrl+V) but drag-and-drop doesn’t work
-This is usually a Windows privilege/UAC issue:
-
-If MyFileStation is running as Administrator but File Explorer is not, Windows may block drag-and-drop into the app.
-
-Recommendation: run MyFileStation as a normal user (non-admin) for daily use.
-
-The shelf stays visible after I cancel a drag
-Release the mouse button and move the cursor away.
-
-If the shelf is empty, it should fade out and hide.
-
-If it still persists, exit the app from the tray and start it again.
-
-Roadmap (ideas)
-Preferences UI (dock side, remove behavior, autostart)
-
-Better preview support (quick view panel / system preview integration)
-
-More robust “file drag vs window drag” distinction
-
-Improved batch export UX (dragging multiple items as a stack)
-
-Polished icons and file type indicators for non-image files
-
-Contributing
 Issues and PRs are welcome.
 
 When filing a bug, please include:
-
-Windows version
-
-steps to reproduce
-
-expected vs actual behavior
-
-screenshots / short recording if UI-related
+- Windows version
+- steps to reproduce
+- expected vs actual behavior
+- screenshots / short recording if UI-related
 
 PR guidelines:
+- keep changes focused and easy to review
+- explain the reason for the change
+- add screenshots for UI changes when possible
 
-keep changes focused and easy to review
+---
 
-explain the reason for the change
+## License
 
-add screenshots for UI changes when possible
-
-License
-MIT License. See LICENSE.
-
-::contentReference[oaicite:0]{index=0}
+MIT License. See `LICENSE`.
