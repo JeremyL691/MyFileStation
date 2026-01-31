@@ -1,0 +1,17 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Run MyFileStation",
+      "type": "python",
+      "request": "launch",
+      "module": "myfilestation.main",
+      "cwd": "${workspaceFolder}",
+      "env": {
+        "PYTHONPATH": "src"
+      },
+      "console": "integratedTerminal",
+      "justMyCode": true
+    }
+  ]
+}
