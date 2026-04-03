@@ -1,14 +1,35 @@
 """
-Entry script for packaging.
+Bootstrap script for development and packaging.
 
-Do NOT run src/myfilestation/main.py directly with PyInstaller because it uses
-relative imports (e.g. "from .foo import bar"). Those only work when the module
-is imported as part of the 'myfilestation' package.
-
-This wrapper imports the package module properly.
+This file makes the local `src/` layout runnable without requiring the package
+to be installed first.
 """
 
-from myfilestation.main import main
+from pathlib import Path
+import sys
+import ctypes
+
+
+ROOT = Path(__file__).resolve().parent
+SRC = ROOT / "src"
+
+if str(SRC) not in sys.path:
+    sys.path.insert(0, str(SRC))
+
+try:
+    from myfilestation.main import main
+except ModuleNotFoundError as exc:
+    message = (
+        "MyFileStation could not start because a required dependency is missing.\n\n"
+        f"Missing module: {exc.name}\n\n"
+        "Run:\n"
+        "python -m pip install -r requirements.txt"
+    )
+    try:
+        ctypes.windll.user32.MessageBoxW(None, message, "MyFileStation startup failed", 0x10)
+    except Exception:
+        print(message, file=sys.stderr)
+    raise
 
 
 if __name__ == "__main__":

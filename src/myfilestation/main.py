@@ -3,6 +3,7 @@ import traceback
 import ctypes
 from PySide6 import QtWidgets
 
+from .controller import ShelfController
 from .settings import SettingsService
 from .shelf_window import ShelfWindow
 from .edge_sensor import EdgeSensorWindow
@@ -20,6 +21,16 @@ def main() -> None:
     try:
         app = QtWidgets.QApplication(sys.argv)
         app.setApplicationName("MyFileStation")
+        app.setQuitOnLastWindowClosed(False)
+
+        if not QtWidgets.QSystemTrayIcon.isSystemTrayAvailable():
+            QtWidgets.QMessageBox.critical(
+                None,
+                "MyFileStation - System Tray Unavailable",
+                "A system tray is required to run MyFileStation.\n\n"
+                "Make sure Explorer is running and the desktop shell is available.",
+            )
+            return
 
         if is_running_as_admin():
             QtWidgets.QMessageBox.critical(
@@ -31,10 +42,20 @@ def main() -> None:
             )
             return
 
-        settings_service = SettingsService()
-        settings = settings_service.load()
+        try:
+            settings_service = SettingsService()
+            settings = settings_service.load()
+        except Exception as exc:
+            QtWidgets.QMessageBox.critical(
+                None,
+                "MyFileStation - Settings Unavailable",
+                f"Application settings could not be initialized.\n\n{exc}",
+            )
+            return
 
-        shelf = ShelfWindow(settings)
+        controller = ShelfController(settings)
+
+        shelf = ShelfWindow(settings, controller)
         sensor = EdgeSensorWindow(settings)
 
         def on_edge_drag(_):
@@ -43,7 +64,24 @@ def main() -> None:
 
         sensor.supported_drag_detected.connect(on_edge_drag)
 
-        TrayController(shelf, sensor, settings, settings_service)
+        try:
+            tray = TrayController(shelf, sensor, settings, settings_service)
+        except Exception as exc:
+            QtWidgets.QMessageBox.critical(
+                None,
+                "MyFileStation - Tray Initialization Failed",
+                f"The system tray controller could not be started.\n\n{exc}",
+            )
+            return
+        app.setWindowIcon(tray.tray.icon())
+        app.aboutToQuit.connect(controller.cleanup_on_exit)
+
+        if settings_service.last_warning:
+            QtWidgets.QMessageBox.warning(
+                None,
+                "MyFileStation - Settings Reset",
+                settings_service.last_warning,
+            )
 
         sys.exit(app.exec())
 

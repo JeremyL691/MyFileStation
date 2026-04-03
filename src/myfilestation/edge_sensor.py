@@ -26,12 +26,14 @@ class EdgeSensorWindow(QtCore.QObject):
         self.edge_threshold = 48   # px near screen edge
         self.drag_dist = 12        # pixels moved to treat as drag
         self.drag_delay_ms = 60    # held time before treat as drag
+        self.retrigger_cooldown_ms = 350
 
         self._active = True
         self._dragging = False
         self._triggered = False
         self._down_pos = None
         self._down_t = 0.0
+        self._last_trigger_t = 0.0
 
         self._timer = QtCore.QTimer(self)
         self._timer.setInterval(16)  # ~60fps
@@ -141,6 +143,12 @@ class EdgeSensorWindow(QtCore.QObject):
         if not self._is_file_view_under_cursor():
             return
 
-        if (not self._triggered) and self._near_edge(gpos):
+        now = time.time()
+        if (
+            (not self._triggered)
+            and self._near_edge(gpos)
+            and ((now - self._last_trigger_t) * 1000.0 >= self.retrigger_cooldown_ms)
+        ):
             self._triggered = True
+            self._last_trigger_t = now
             self.supported_drag_detected.emit(None)

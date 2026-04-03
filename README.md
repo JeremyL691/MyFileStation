@@ -1,77 +1,88 @@
-# MyFileStation 🚉
+# MyFileStation
 
-**The missing "File Shelf" for your Windows workflow.**
+MyFileStation is a lightweight Windows shelf for temporary file hand-offs.
 
-> *"Why do I have to minimize 10 windows just to drag a file to my Desktop?"* — Me, before building this.
-> 
+Instead of minimizing a stack of windows just to drop a file somewhere else, you can keep a narrow shelf on the left or right side of the screen:
 
-## 🤔 What is this?
+1. Drag a file from Explorer or the Desktop toward the configured screen edge.
+2. The shelf slides out.
+3. Drop the file onto the shelf.
+4. Open your target app and drag the file back out when you need it.
 
-You know that awkward moment when you're dragging a file from Chrome, and you realize the folder you want to drop it into is covered by 3 other windows? You hover there, shaking your mouse, hoping Windows gets the hint. It usually doesn't.
+It also accepts clipboard text and images with `Ctrl+V`.
 
-**MyFileStation** is a lightweight, edge-hiding "shelf" that lives on the side of your screen.
+## Current MVP Capabilities
 
-1. **Drag** a file to the screen edge ➡️ The station slides out.
-2. **Drop** the file there (it stays safe).
-3. **Open** your target app (Discord, Email, Photoshop).
-4. **Drag** the file out from the station.
+- Edge reveal for local file drags from `Explorer` and the `Desktop`
+- Drop files into the shelf
+- Paste files, text, and images from the clipboard
+- Drag files back out to other apps
+- Pin items so they are protected from auto-remove and bulk clear
+- Tray controls for dock side, auto-remove, and auto-start
+- Native Windows file icons plus thumbnails for image files
 
-It's like a temporary "pocket" for your digital stuff.
+## Important Limits
 
-## ✨ Features that actually matter
+- Edge reveal currently watches `Explorer` and `Desktop` file views only
+- Browser-originated drags are not yet supported
+- This project targets `Windows 10/11`
+- Running the app as `Administrator` disables Explorer drag and drop because of Windows integrity rules
 
-- **👻 Ghost Mode (Edge Sensing)**: It stays hidden and out of your way. It only pops out when you drag a file near the edge.
-- **📋 Clipboard Magic**: Too lazy to drag? Just `Ctrl+C` a file, text, or screenshot, click the station, and `Ctrl+V`. It handles it all.
-- **📌 Pin It**: Need to keep a file handy for later? Pin it so you don't accidentally swipe it away.
-- **🖼️ Real Thumbnails**: No generic icons. See exactly what meme you are about to send.
-- **⚡ Lightweight**: Built with Python, packaged as a standalone EXE. No bloatware.
+## Project Layout
 
-## 🛠 Installation
-
-**"I just want to use it" (For Users)**
-
-1. Go to the [Releases](https://github.com/JeremyL691/MyFileStation/releases) page.
-2. Download `MyFileStation.exe`.
-3. Run it. That's it. No installer wizard, no "Next, Next, Finish".
-
-**"I want to break it" (For Developers)**
-
-```bash
-# Clone the repo
-git clone [<https://github.com/JeremyL691/MyFileStation.git>](<https://github.com/JeremyL691/MyFileStation.git>)
-
-# Install dependencies
-pip install -r requirements.txt
-
-# Run source
-python main.py
+```text
+run_myfilestation.py        Development entry point
+requirements.txt            Runtime dependencies
+src/myfilestation/          Application package
 ```
 
-## 🎮 How to use
+## Development Setup
 
-1. **Launch it.** You'll see a small bar on the screen edge (left/right).
-2. **Drag a file** towards it -> It expands.
-3. **Drop the file.**
-4. **Right-click** on any item for more options (Open, Delete, Pin).
-5. **Ctrl+V** inside the station to paste from your clipboard.
+```powershell
+python -m pip install -r requirements.txt
+python run_myfilestation.py
+```
 
-## 🏗 Tech Stack
+The bootstrap script adds `src/` to `sys.path`, so you do not need to install the package in editable mode just to run it locally.
 
-- **Python 3.10+**: Because life is too short for C++.
-- **Tkinter / PyQt** (depending on version): For the GUI.
-- **PyInstaller**: To mash everything into a single `.exe`.
+## Build A Windows EXE
 
-## ⚠️ Known Issues
+```powershell
+python -m pip install -r requirements-packaging.txt
+python -m PyInstaller --noconfirm --clean MyFileStation.spec
+```
 
-- If it doesn't open, try running as Administrator (Windows permissions are fun).
-- Works best on Windows 10/11. Mac/Linux support is... "theoretical" at this point.
+The packaged executable will be written to `dist/MyFileStation.exe`.
 
-## 📜 License
+## Verification
 
-MIT License. Do whatever you want with it. Just don't blame me if your computer becomes self-aware.
+```powershell
+python -m pytest -q
+python -m pytest -m smoke
+```
 
----
+A full Windows manual regression checklist is available in [TESTING.md](./TESTING.md).
 
-*Built with ☕ and Python by JeremyL691.*
+## Controls
 
----
+- `Ctrl+V`: import files, text, or images from the clipboard
+- `Ctrl+C`: copy selected shelf files to the clipboard as file paths
+- `Ctrl+A`: select all items
+- `Enter` or `Space`: open the selected item
+- `Delete`: remove selected unpinned items
+- `Esc`: hide the shelf
+- Double-click an item: open it
+- Right-click an item: open, reveal in Explorer, copy path, pin/unpin, remove
+
+## Auto-Start Behavior
+
+- In development, auto-start points to `pythonw.exe` plus `run_myfilestation.py`
+- In a packaged build, auto-start should point directly to the built executable
+
+## Packaging Notes
+
+`run_myfilestation.py` exists so the local `src/` package layout works in development and when bundled. Do not point packaging directly at `src/myfilestation/main.py`.
+
+## License
+
+MIT

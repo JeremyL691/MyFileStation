@@ -1,6 +1,6 @@
 from PySide6 import QtWidgets
 from .settings import AppSettings, SettingsService
-from .utils import set_autostart_windows, get_running_python_exe_for_autostart
+from .utils import create_app_icon, get_autostart_command, set_autostart_windows
 
 
 class TrayController:
@@ -10,8 +10,7 @@ class TrayController:
         self.settings = settings
         self.settings_service = settings_service
 
-        # Use a standard icon so tray ALWAYS appears
-        icon = QtWidgets.QApplication.style().standardIcon(QtWidgets.QStyle.SP_DirIcon)
+        icon = create_app_icon()
 
         self.tray = QtWidgets.QSystemTrayIcon(icon)
         self.tray.setToolTip("MyFileStation")
@@ -22,9 +21,21 @@ class TrayController:
         act_hide = menu.addAction("Hide Shelf")
         menu.addSeparator()
 
-        act_left = menu.addAction("Dock: Left")
-        act_right = menu.addAction("Dock: Right")
+        self.act_left = menu.addAction("Dock: Left")
+        self.act_right = menu.addAction("Dock: Right")
+        self.act_left.setCheckable(True)
+        self.act_right.setCheckable(True)
+        self.act_left.setChecked(self.settings.dock_side == "left")
+        self.act_right.setChecked(self.settings.dock_side == "right")
         menu.addSeparator()
+
+        self.act_remove_after_drag = menu.addAction("Auto-remove After Drag Out")
+        self.act_remove_after_drag.setCheckable(True)
+        self.act_remove_after_drag.setChecked(self.settings.remove_after_drag_out)
+
+        self.act_cleanup_temp_on_exit = menu.addAction("Clean Up Temp Items On Exit")
+        self.act_cleanup_temp_on_exit.setCheckable(True)
+        self.act_cleanup_temp_on_exit.setChecked(self.settings.cleanup_temp_on_exit)
 
         self.act_autostart = menu.addAction("Auto-start with Windows")
         self.act_autostart.setCheckable(True)
@@ -36,11 +47,14 @@ class TrayController:
         act_show.triggered.connect(self.shelf.show_soft)
         act_hide.triggered.connect(self.shelf.hide_soft)
 
-        act_left.triggered.connect(lambda: self._set_dock("left"))
-        act_right.triggered.connect(lambda: self._set_dock("right"))
+        self.act_left.triggered.connect(lambda: self._set_dock("left"))
+        self.act_right.triggered.connect(lambda: self._set_dock("right"))
 
+        self.act_remove_after_drag.toggled.connect(self._toggle_remove_after_drag)
+        self.act_cleanup_temp_on_exit.toggled.connect(self._toggle_cleanup_temp_on_exit)
         self.act_autostart.toggled.connect(self._toggle_autostart)
         act_exit.triggered.connect(QtWidgets.QApplication.quit)
+        self.tray.activated.connect(self._on_tray_activated)
 
         self.tray.setContextMenu(menu)
         self.tray.show()
@@ -53,16 +67,66 @@ class TrayController:
             2500,
         )
 
+    def _on_tray_activated(self, reason: QtWidgets.QSystemTrayIcon.ActivationReason) -> None:
+        if reason == QtWidgets.QSystemTrayIcon.Trigger:
+            if self.shelf.isVisible():
+                self.shelf.hide_soft()
+            else:
+                self.shelf.show_soft()
+
     def _set_dock(self, side: str) -> None:
-        self.settings.dock_side = side
-        self.settings_service.save(self.settings)
-        self.shelf.reposition()
-        self.sensor.reposition()
+        previous_side = self.settings.dock_side
+        try:
+            self.settings.dock_side = side
+            self.settings_service.save(self.settings)
+            self.act_left.setChecked(side == "left")
+            self.act_right.setChecked(side == "right")
+            self.shelf.reposition()
+            self.sensor.reposition()
+        except Exception as exc:
+            self.settings.dock_side = previous_side
+            self._set_checked(self.act_left, previous_side == "left")
+            self._set_checked(self.act_right, previous_side == "right")
+            self._show_warning("Dock Setting Failed", str(exc))
+
+    def _toggle_remove_after_drag(self, enabled: bool) -> None:
+        previous = self.settings.remove_after_drag_out
+        try:
+            self.settings.remove_after_drag_out = enabled
+            self.settings_service.save(self.settings)
+            self.shelf.refresh_status_text()
+        except Exception as exc:
+            self.settings.remove_after_drag_out = previous
+            self._set_checked(self.act_remove_after_drag, previous)
+            self._show_warning("Setting Failed", str(exc))
+
+    def _toggle_cleanup_temp_on_exit(self, enabled: bool) -> None:
+        previous = self.settings.cleanup_temp_on_exit
+        try:
+            self.settings.cleanup_temp_on_exit = enabled
+            self.settings_service.save(self.settings)
+        except Exception as exc:
+            self.settings.cleanup_temp_on_exit = previous
+            self._set_checked(self.act_cleanup_temp_on_exit, previous)
+            self._show_warning("Setting Failed", str(exc))
 
     def _toggle_autostart(self, enabled: bool) -> None:
-        self.settings.autostart = enabled
-        self.settings_service.save(self.settings)
+        previous = self.settings.autostart
+        try:
+            self.settings.autostart = enabled
+            self.settings_service.save(self.settings)
 
-        py = get_running_python_exe_for_autostart()
-        cmd = f'"{py}" -m myfilestation.main'
-        set_autostart_windows(enabled, "MyFileStation", cmd)
+            cmd = get_autostart_command()
+            set_autostart_windows(enabled, "MyFileStation", cmd)
+        except Exception as exc:
+            self.settings.autostart = previous
+            self._set_checked(self.act_autostart, previous)
+            self._show_warning("Auto-start Failed", str(exc))
+
+    def _set_checked(self, action: QtWidgets.QAction, checked: bool) -> None:
+        action.blockSignals(True)
+        action.setChecked(checked)
+        action.blockSignals(False)
+
+    def _show_warning(self, title: str, message: str) -> None:
+        QtWidgets.QMessageBox.warning(None, title, message)
