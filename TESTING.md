@@ -1,67 +1,77 @@
 # Testing MyFileStation
 
-## Automated Checks
+## Automated checks
 
-Install dependencies:
+For a fail-fast local run, use `./scripts/test-windows.ps1 -IncludeStress`. The optional stress check creates 1,000 external references, measures 50 full list reads, exercises 1,000 generated text/image lifecycles, reopens SQLite, and validates deferred cleanup. It is a storage test; it does not substitute for native drag cycles or the 8-hour release gate.
 
-```powershell
-python -m pip install -r requirements.txt
-```
+The latest local findings and remaining release gates are recorded in [QA_REPORT.md](./QA_REPORT.md).
 
-Run the full automated suite:
+Run these from the repository root on Windows:
 
 ```powershell
-python -m pytest -q
+pnpm install --frozen-lockfile
+pnpm test
+pnpm typecheck
+pnpm lint
+pnpm format:check
+pnpm --filter @myfilestation/frontend build:web
+cargo fmt --all --check
+cargo test --workspace
+cargo clippy --workspace --all-targets -- -D warnings
 ```
 
-Run only the Qt smoke tests:
+The Vitest suite covers filtering, selection, keyboard removal, and settings rollback. Rust tests cover SQLite creation and migration, persistence and recovery, external path protection, pinned-item rules, clipboard-generated files, and deferred cleanup. The legacy Python suite is a migration reference and can still be run with `python -m pytest -q`.
 
-```powershell
-python -m pytest -m smoke
-```
+## Windows compatibility matrix
 
-The Qt tests default to `QT_QPA_PLATFORM=offscreen`, so they can run without an interactive desktop session.
+Record the Windows edition/build, display topology and scaling, WebView2 version, and each target application's version with every manual run. Run as a standard user. Test Windows 10 and 11; one and two displays; 100%, 125%, 150%, and 200% scaling; mixed DPI; displays left of the primary display; and monitor removal/reconnection.
 
-## Windows Manual Regression Checklist
+### Shelf and settings
 
-Environment baseline:
+- [ ] Shelf opens in the work area of the cursor's display and stays within its bounds.
+- [ ] Left/right docking, tray show/hide, close-to-hide, settings window, and global shortcut work.
+- [ ] Shortcut conflicts are reported and the previous shortcut stays registered.
+- [ ] Chinese and English labels, light/dark/system themes, keyboard focus, and long names render correctly.
+- [ ] Search matches names and paths; changing a filter clears selection.
+- [ ] Multi-select, `Ctrl+A`, `Ctrl+C`, `Ctrl+V`, `Enter`, `Space`, `Delete`, and `Esc` work.
+- [ ] Context menu supports open, reveal, copy path, pin/unpin, and remove.
+- [ ] Settings persist after restart; failed writes restore the previous UI value.
+- [ ] Start-with-Windows status matches the current user's Run registry entry.
 
-- Windows 10 or Windows 11
-- Run once on a single-display setup
-- Run once on a dual-display setup
-- Run as a normal user
-- Validate both Explorer and Desktop drag sources
+### Import, paste, and copy drag-out
 
-Checklist:
+- [ ] Import a single file, folder, multi-selection, Chinese name, space, long path, and repeated path from Explorer and the desktop.
+- [ ] Folders remain references; their contents are not scanned or copied.
+- [ ] Paste copied files, text, and images. Verify generated images open and can be pasted or dragged into supported targets.
+- [ ] Missing and temporarily unavailable paths remain visible as unavailable entries.
+- [ ] Drag copies to Explorer, Chrome, Edge, WeChat, QQ, VS Code, and supported Office file targets.
+- [ ] Cancel a drag, reject a drop, and test a target that reads the file asynchronously. Originals remain unchanged.
+- [ ] Confirm a successful drag only removes the shelf entry when the setting is enabled, and pinned items remain.
+- [ ] Exit immediately after a drag and verify that temporary data remains available to any active clipboard reference.
 
-- [ ] Launch with `python run_myfilestation.py` and confirm the app stays running
-- [ ] Verify the tray icon appears and left-click toggles shelf visibility
-- [ ] Switch dock side left/right and confirm the shelf repositions immediately
-- [ ] Toggle `Auto-remove After Drag Out`, restart, and confirm the setting persists
-- [ ] Toggle `Clean Up Temp Items On Exit`, restart, and confirm the setting persists
-- [ ] Toggle `Auto-start with Windows` and confirm it can be enabled and disabled without errors
-- [ ] Drag a file from Explorer to the configured edge and confirm the shelf reveals
-- [ ] Drag a file from the Desktop to the configured edge and confirm the shelf reveals
-- [ ] Cancel an edge drag before drop and confirm an empty shelf auto-hides
-- [ ] Drop a local file into the shelf and confirm it renders with the correct icon or thumbnail
-- [ ] Press `Ctrl+V` with copied files and confirm they are imported
-- [ ] Press `Ctrl+V` with copied text and confirm a temporary text item is created
-- [ ] Press `Ctrl+V` with a screenshot and confirm a temporary image item is created
-- [ ] Double-click an item and confirm it opens
-- [ ] Press `Enter` and `Space` on a selected item and confirm it opens
-- [ ] Press `Delete` on selected mixed items and confirm pinned items are preserved
-- [ ] Pin an item, drag it out successfully, and confirm it is not auto-removed
-- [ ] Run `Clear Unlocked` and confirm pinned items remain
-- [ ] Use the right-click menu to open, reveal in Explorer, copy path, pin/unpin, remove, and force remove
-- [ ] Delete a backing file externally, then try open/reveal/copy/drag-out and confirm the app warns and removes the stale shelf entry
-- [ ] Exit the app with unpinned temporary items present and confirm they are deleted when cleanup-on-exit is enabled
-- [ ] Start the app as Administrator and confirm the drag-and-drop warning appears
+### Recovery and lifecycle
 
-## Release Gate
+- [ ] Restart with pinned and ordinary active entries; verify valid entries restore.
+- [ ] Enable exit cleanup and verify only unpinned generated items are queued for cleanup.
+- [ ] Confirm that remove, clear, and cleanup never delete an external file or recurse into an external folder.
+- [ ] Interrupt generated-file writing, database commit, and cleanup; restart and verify recovery or an actionable error.
+- [ ] Simulate a corrupt database and confirm the original is retained and startup reports the problem.
+- [ ] Launch a second instance and confirm it reveals the existing shelf.
+- [ ] Restart Explorer and verify edge reveal recovers.
+- [ ] Toggle auto-start and confirm there is only one effective startup entry.
 
-Run before every release:
+### Target application scope
 
-1. `python -m pytest -q`
-2. `python -m pytest -m smoke`
-3. Complete the Windows manual regression checklist
-4. Validate the packaged build separately before publishing
+Use each app's normal, supported file import flow. For WeChat and QQ, use their own file-transfer or “My Computer” destinations. Do not treat unsupported virtual attachments or browser image downloads as failures in this release.
+
+## Release gates
+
+- [ ] Automated checks pass in local development and Windows CI.
+- [ ] Complete and record the compatibility matrix above on the release candidate.
+- [ ] Run for 8 hours and complete 1,000 drag-in, drag-out, and cancellation cycles without sustained resource growth.
+- [ ] On the recorded SSD test machine, measure shelf reveal P95 at or below 200 ms and search P95 at or below 100 ms for 1,000 items.
+- [ ] Install and uninstall the NSIS package in a clean environment; validate upgrade and rollback.
+- [ ] Run the portable ZIP from a clean environment and validate missing-WebView2 guidance.
+- [ ] Record package SHA-256 values and attach the compatibility report to the release.
+
+The developer machine can run automated and interactive checks, but the multi-application matrix, 8-hour run, and 1,000-cycle stress gate require a release-candidate QA session and should not be marked complete until recorded.

@@ -1,0 +1,15 @@
+{
+  "name": "myfilestation",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "pnpm --filter @myfilestation/frontend dev",
+    "build": "pnpm --filter @myfilestation/frontend build",
+    "test": "pnpm --filter @myfilestation/frontend test",
+    "test:ui": "pnpm --filter @myfilestation/frontend test:ui",
+    "typecheck": "pnpm --filter @myfilestation/frontend typecheck",
+    "lint": "pnpm --filter @myfilestation/frontend lint",
+    "format:check": "pnpm --filter @myfilestation/frontend format:check",
+    "test:rust": "cargo test --workspace"
+  }
+}
