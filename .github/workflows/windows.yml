@@ -1,0 +1,64 @@
+name: Windows quality checks
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: windows-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  windows-x64:
+    runs-on: windows-2022
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-pc-windows-msvc
+          components: rustfmt, clippy
+      - uses: Swatinem/rust-cache@v2
+      - name: Install frontend dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Frontend tests
+        run: pnpm test
+      - name: Frontend type check
+        run: pnpm typecheck
+      - name: Frontend lint
+        run: pnpm lint
+      - name: Frontend formatting
+        run: pnpm format:check
+      - name: Frontend production build
+        run: pnpm --filter @myfilestation/frontend build:web
+      - name: Rust formatting
+        run: cargo fmt --all --check
+      - name: Rust tests
+        run: cargo test --workspace --locked
+      - name: Rust lint
+        run: cargo clippy --workspace --all-targets --locked -- -D warnings
+      - name: Build native application
+        run: ./scripts/build-windows.ps1 -SkipInstaller
+      - name: Package portable application
+        run: ./scripts/package-portable.ps1
+      - name: Upload candidate build
+        uses: actions/upload-artifact@v4
+        with:
+          name: MyFileStation-windows-x64
+          path: |
+            release/*-portable.zip
+            release/SHA256SUMS.txt
+          if-no-files-found: error
+          retention-days: 14

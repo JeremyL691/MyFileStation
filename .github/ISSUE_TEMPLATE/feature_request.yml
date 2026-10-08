@@ -1,0 +1,23 @@
+name: 功能建议 / Feature request
+description: 描述需要解决的使用场景和期望的行为。
+title: "[Feature] "
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: 使用场景 / Use case
+      description: 你在完成什么任务？目前卡在哪里？
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: 期望的行为 / Proposed behavior
+      description: 描述操作前后会发生什么。
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: 替代方案与补充 / Alternatives and context
+      description: 可附草图、相关操作或现有解决方式。

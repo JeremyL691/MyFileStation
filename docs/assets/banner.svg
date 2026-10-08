@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="440" viewBox="0 0 1280 440" role="img" aria-labelledby="title desc">
+  <title id="title">MyFileStation</title>
+  <desc id="desc">A file shelf between apps. Illustrated workflow: collect, keep, and hand off files.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#171e2b"/><stop offset="1" stop-color="#0e121b"/>
+    </linearGradient>
+    <linearGradient id="card" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#303b51"/><stop offset="1" stop-color="#202a3c"/>
+    </linearGradient>
+    <pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse">
+      <path d="M32 0H0V32" fill="none" stroke="#bac8e9" stroke-opacity=".035"/>
+    </pattern>
+  </defs>
+  <rect width="1280" height="440" rx="24" fill="url(#bg)"/>
+  <rect width="1280" height="440" rx="24" fill="url(#grid)"/>
+  <circle cx="1070" cy="205" r="167" fill="#a8b8ed" opacity=".035"/>
+  <circle cx="1070" cy="205" r="130" fill="none" stroke="#a8b8ed" stroke-opacity=".1"/>
+  <g transform="translate(64 62) scale(.27)">
+    <rect width="216" height="216" rx="54" fill="#293348"/>
+    <rect x="42" y="55" width="133" height="111" rx="21" fill="none" stroke="#e8edf7" stroke-width="13"/>
+    <rect x="55" y="115" width="106" height="12" rx="6" fill="#a8b8ed"/>
+    <rect x="173" y="43" width="19" height="134" rx="9" fill="#a8b8ed"/>
+  </g>
+  <g font-family="Segoe UI, Arial, sans-serif">
+    <text x="139" y="91" font-size="16" letter-spacing="3" fill="#acbce1">YOUR DESKTOP FILE SHELF</text>
+    <text x="64" y="190" font-size="66" font-weight="650" letter-spacing="-2.5" fill="#f0f3fa">MyFileStation</text>
+    <text x="67" y="242" font-size="25" fill="#aab7ce">A place for files between apps.</text>
+    <g transform="translate(67 302)" font-size="14" fill="#bac6dd">
+      <rect width="100" height="34" rx="17" fill="#a8b8ed" fill-opacity=".09" stroke="#a8b8ed" stroke-opacity=".14"/>
+      <text x="50" y="22" text-anchor="middle">COLLECT</text>
+      <path d="M114 17h23m-5-5 5 5-5 5" fill="none" stroke="#7e8ba6"/>
+      <rect x="152" width="80" height="34" rx="17" fill="#a8b8ed" fill-opacity=".09" stroke="#a8b8ed" stroke-opacity=".14"/>
+      <text x="192" y="22" text-anchor="middle">KEEP</text>
+      <path d="M246 17h23m-5-5 5 5-5 5" fill="none" stroke="#7e8ba6"/>
+      <rect x="284" width="108" height="34" rx="17" fill="#a8b8ed" fill-opacity=".09" stroke="#a8b8ed" stroke-opacity=".14"/>
+      <text x="338" y="22" text-anchor="middle">HAND OFF</text>
+    </g>
+    <text x="68" y="391" font-size="12" letter-spacing="1.5" fill="#6f809c">LOCAL FILES  /  CLIPBOARD  /  WINDOWS</text>
+  </g>
+  <path d="M739 205h52m-7-7 7 7-7 7M1145 205h53m-7-7 7 7-7 7" fill="none" stroke="#a8b8ed" stroke-opacity=".45" stroke-width="2"/>
+  <g transform="translate(831 83) rotate(-8 126 134)">
+    <rect x="-8" y="-8" width="252" height="267" rx="20" fill="#192133" stroke="#51617e" stroke-opacity=".45"/>
+  </g>
+  <g transform="translate(838 77)">
+    <rect width="252" height="278" rx="20" fill="url(#card)" stroke="#637393" stroke-opacity=".7"/>
+    <path d="M20 48h212" stroke="#53617c" stroke-opacity=".6"/>
+    <g fill="#a8b8ed"><circle cx="23" cy="24" r="3"/><circle cx="35" cy="24" r="3" opacity=".5"/><circle cx="47" cy="24" r="3" opacity=".3"/></g>
+    <g font-family="Segoe UI, Arial, sans-serif" font-size="13" fill="#d1d9eb">
+      <text x="225" y="28" text-anchor="end" fill="#8d9cbb" font-size="10" letter-spacing="1.5">FILE SHELF</text>
+      <rect x="18" y="64" width="216" height="54" rx="10" fill="#39455d"/>
+      <path d="M33 80h9l4 4h14v19H33z" fill="none" stroke="#a8b8ed" stroke-width="1.7" stroke-linejoin="round"/>
+      <text x="76" y="88">Project files</text><text x="76" y="104" font-size="10" fill="#8f9fbd">Pinned</text>
+      <rect x="18" y="126" width="216" height="54" rx="10" fill="#283349"/>
+      <path d="M36 140h13l9 9v18H36zm13 0v9h9m-17 7h12m-12 5h9" fill="none" stroke="#98a9ce" stroke-width="1.5" stroke-linejoin="round"/>
+      <text x="76" y="150">Notes.txt</text><text x="76" y="166" font-size="10" fill="#8f9fbd">From clipboard</text>
+      <rect x="18" y="188" width="216" height="54" rx="10" fill="#283349"/>
+      <rect x="34" y="201" width="26" height="25" rx="4" fill="none" stroke="#98a9ce" stroke-width="1.5"/>
+      <path d="m35 222 8-8 6 5 6-7 5 6" fill="none" stroke="#98a9ce" stroke-width="1.5"/><circle cx="42" cy="207" r="2" fill="#98a9ce"/>
+      <text x="76" y="212">Reference.png</text><text x="76" y="228" font-size="10" fill="#8f9fbd">Ready to use</text>
+      <text x="126" y="263" text-anchor="middle" font-size="10" letter-spacing="1" fill="#94a4c5">DROP IN. PICK UP. KEEP GOING.</text>
+    </g>
+  </g>
+</svg>

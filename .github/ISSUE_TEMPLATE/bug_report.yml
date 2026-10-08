@@ -1,0 +1,51 @@
+name: 问题反馈 / Bug report
+description: 报告可复现的异常，帮助定位 Windows 与应用行为。
+title: "[Bug] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        中文或英文均可。请先搜索已有问题；截图与日志中请隐藏私人路径、文件内容及其他敏感信息。
+  - type: input
+    id: version
+    attributes:
+      label: 应用版本与来源 / Version and source
+      placeholder: "例如：0.3.0，Actions 便携版，提交 abc1234"
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: 环境 / Environment
+      description: Windows 版本、显示器数量与缩放；涉及拖放时附来源与目标应用版本。
+      placeholder: "Windows 11 23H2；双屏 100% / 150%；Explorer → MyFileStation → 目标应用"
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: 复现步骤 / Steps to reproduce
+      placeholder: |
+        1. 打开…
+        2. 拖入…
+        3. 点击…
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: 预期行为 / Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: 实际行为 / Actual behavior
+      description: 错误提示、出现频率，以及是否影响原文件。
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: 截图或补充信息 / Screenshots or context
+      description: 可选；日志位于 %LOCALAPPDATA%\MyFileStation\v2\logs，上传前请检查并移除敏感信息。
